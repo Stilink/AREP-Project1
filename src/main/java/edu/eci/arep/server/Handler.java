@@ -8,4 +8,5 @@ import java.lang.reflect.Method;
 public interface Handler {
 
     String procesar();
+    String procesar(Object[] arg);
 }

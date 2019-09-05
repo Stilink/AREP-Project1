@@ -17,11 +17,17 @@ public class StaticMethodHandler implements Handler {
 
     public String procesar() {
         try {
-            return (String)method.invoke(null, null);
+            return (String)method.invoke(method, null);
         } catch (Exception e) {
-            return "El metodo ha flayao";
+            return "El metodo ha fallado";
         } 
     }
     
-    
+    public String procesar(Object[] arg) {
+        try {
+            return (String)method.invoke(method, arg);
+        } catch (Exception e) {
+            return "El metodo ha fallado";
+        } 
+    }
 }
