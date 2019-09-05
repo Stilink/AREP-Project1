@@ -31,7 +31,7 @@ public class Server {
 
     public void escuchar() throws Exception {
         while (true) {
-            ServerSocket serverSocket = new ServerSocket(35000);
+            ServerSocket serverSocket = new ServerSocket(Server.getPort());
             Socket cliente = serverSocket.accept();
             while (!cliente.isClosed()) {
                 PrintWriter out = new PrintWriter(
@@ -136,4 +136,13 @@ public class Server {
         BufferedImage image = ImageIO.read(new File(System.getProperty("user.dir") + "/resources" + recurso));
         ImageIO.write(image, "PNG", clientSocket.getOutputStream());
     }
+
+
+
+    static int getPort() {
+		if (System.getenv("PORT") != null) {
+			return Integer.parseInt(System.getenv("PORT"));
+		}
+		return 40567; // returns default port if heroku-port isn't set (i.e. on localhost)
+	}
 }
