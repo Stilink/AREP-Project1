@@ -95,8 +95,14 @@ public class Server {
     }
 
     private void procesarLocal(PrintWriter out, String recurso, Socket cliente) throws Exception {
-        String path = System.getProperty("user.dir") + "/resources" + recurso;
         BufferedReader br = null;
+        String path;
+        if(recurso.equals("/")){
+            path = System.getProperty("user.dir")+"/principal.html";
+        }else{
+            path = System.getProperty("user.dir") + "/resources" + recurso;
+        }
+        
         try {
             br = new BufferedReader(new FileReader(path));
         } catch (Exception e) {
