@@ -22,4 +22,4 @@ de modo que el metodo recibirá como parametro una cadena así "param=paramValue
  - Github, Stilink(Jeymar Vega) - Github: https://github.com/Stilink/AREP_CYS
  
  ## Heroku
- https://cryptic-peak-98652.herokuapp.com
+ https://arep-project-1.herokuapp.com/
