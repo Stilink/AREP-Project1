@@ -57,7 +57,7 @@ public class Server {
                                     out.println("HTTP/1.1 200 OK+\r");
                                     out.println("Content-Type: text/html\r");
                                     out.println("\r\n");
-                                    out.println(ListaURLHandler.get(recursoLocacion).procesar(new Object[]{recurso.substring(recurso.indexOf("?")+1)})+"\r");
+                                    out.println(ListaURLHandler.get(recursoLocacion).procesar(new Object[]{recurso.substring(recurso.indexOf("?")+1).split("=")[1]})+"\r");
                                 } else {
                                     procesarLocal(out, recurso, cliente);
                                 }
