@@ -44,20 +44,20 @@ public class Server {
                             String recurso = line.split(" ")[1];
                             if(!recurso.contains("?")){
                                 if (ListaURLHandler.containsKey(recurso)) {
-                                    out.println("HTTP/1.1 200 OK");
-                                    out.println("Content-Type: text/html");
+                                    out.println("HTTP/1.1 200 OK\r");
+                                    out.println("Content-Type: text/html\r");
                                     out.println("\r\n");
-                                    out.println(ListaURLHandler.get(recurso).procesar());
+                                    out.println(ListaURLHandler.get(recurso).procesar()+"\r");
                                 } else {
                                     procesarLocal(out, recurso, cliente);
                                 }
                             }else{
                                 String recursoLocacion = recurso.substring(recurso.indexOf("/apps/"),recurso.indexOf("?"));
                                 if (ListaURLHandler.containsKey(recursoLocacion)) {
-                                    out.println("HTTP/1.1 200 OK");
-                                    out.println("Content-Type: text/html");
+                                    out.println("HTTP/1.1 200 OK+\r");
+                                    out.println("Content-Type: text/html\r");
                                     out.println("\r\n");
-                                    out.println(ListaURLHandler.get(recursoLocacion).procesar(new Object[]{recurso.substring(recurso.indexOf("?")+1)}));
+                                    out.println(ListaURLHandler.get(recursoLocacion).procesar(new Object[]{recurso.substring(recurso.indexOf("?")+1)})+"\r");
                                 } else {
                                     procesarLocal(out, recurso, cliente);
                                 }
@@ -98,7 +98,7 @@ public class Server {
         BufferedReader br = null;
         String path;
         if(recurso.equals("/")){
-            path = System.getProperty("user.dir")+"/principal.html";
+            path = System.getProperty("user.dir")+"/index.html";
         }else{
             path = System.getProperty("user.dir") + "/resources" + recurso;
         }
@@ -106,8 +106,8 @@ public class Server {
         try {
             br = new BufferedReader(new FileReader(path));
         } catch (Exception e) {
-            out.println("HTTP/1.1 404 Not Found");
-            out.println("Content-Type: text/html");
+            out.println("HTTP/1.1 404 Not Found\r");
+            out.println("Content-Type: text/html\r");
             System.out.println("Not found");
         }
         try {
@@ -117,28 +117,28 @@ public class Server {
                 png(out, cliente, recurso);
             }
         } catch (Exception e) {
-            out.println("HTTP/1.1 404 Not Found");
-            out.println("Content-Type: text/html");
+            out.println("HTTP/1.1 404 Not Found\r");
+            out.println("Content-Type: text/html\r");
             System.out.println("Not found");
         }
 
     }
 
     private void html(PrintWriter out, BufferedReader br) throws Exception {
-        out.write("HTTP/1.1 200 OK");
-        out.println("Content-Type: text/html");
-        out.println();
+        out.write("HTTP/1.1 200 OK\r");
+        out.println("Content-Type: text/html\r");
+        out.println("\r");
         String temp = br.readLine();
         while (temp != null) {
-            out.write(temp);
+            out.write(temp+"\r");
             temp = br.readLine();
         }
     }
 
     private void png(PrintWriter out, Socket clientSocket, String recurso) throws Exception {
-        out.write("HTTP/1.1 200 OK");
-        out.println("Content-Type: image/png");
-        out.println();
+        out.write("HTTP/1.1 200 OK\r");
+        out.println("Content-Type: image/png\r");
+        out.println("\r");
         BufferedImage image = ImageIO.read(new File(System.getProperty("user.dir") + "/resources" + recurso));
         ImageIO.write(image, "PNG", clientSocket.getOutputStream());
     }
