@@ -98,7 +98,7 @@ public class Server {
         BufferedReader br = null;
         String path;
         if(recurso.equals("/")){
-            path = System.getProperty("user.dir")+"/index.html";
+            path = System.getProperty("user.dir")+"/principal.html";
         }else{
             path = System.getProperty("user.dir") + "/resources" + recurso;
         }
