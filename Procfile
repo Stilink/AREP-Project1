@@ -1,1 +1,1 @@
-web: java -cp target/classes;target/dependency/* edu.eci.arep.controlador.Controlador
+web: java -cp target/classes:target/dependency/* edu.eci.arep.controlador.Controlador
