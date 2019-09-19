@@ -1,20 +1,14 @@
 package edu.eci.arep.server;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.imageio.ImageIO;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import edu.eci.arep.server.handlers.StaticMethodHandler;
@@ -22,62 +16,22 @@ import edu.eci.arep.server.handlers.StaticMethodHandler;
 /**
  * Server
  */
-public class Server {
+public class Server implements Runnable {
     private Map<String, Handler> ListaURLHandler;
+    private ExecutorService pool;
+    private ServerSocket serverSocket;
 
-    public Server() {
-        ListaURLHandler = new HashMap<String, Handler>();
-    }
-
-    public void escuchar() throws Exception {
-        while (true) {
-            ServerSocket serverSocket = new ServerSocket(Server.getPort());
-            Socket cliente = serverSocket.accept();
-            while (!cliente.isClosed()) {
-                PrintWriter out = new PrintWriter(
-                        new OutputStreamWriter(cliente.getOutputStream(), StandardCharsets.UTF_8), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
-                String line;
-                while ((line = in.readLine()) != null) {
-                    if (line.contains("GET")) {
-                        if (line.contains("/apps/")) {
-                            String recurso = line.split(" ")[1];
-                            if(!recurso.contains("?")){
-                                if (ListaURLHandler.containsKey(recurso)) {
-                                    out.println("HTTP/1.1 200 OK\r");
-                                    out.println("Content-Type: text/html\r");
-                                    out.println("\r\n");
-                                    out.println(ListaURLHandler.get(recurso).procesar()+"\r");
-                                } else {
-                                    procesarLocal(out, recurso, cliente);
-                                }
-                            }else{
-                                String recursoLocacion = recurso.substring(recurso.indexOf("/apps/"),recurso.indexOf("?"));
-                                if (ListaURLHandler.containsKey(recursoLocacion)) {
-                                    out.println("HTTP/1.1 200 OK+\r");
-                                    out.println("Content-Type: text/html\r");
-                                    out.println("\r\n");
-                                    out.println(ListaURLHandler.get(recursoLocacion).procesar(new Object[]{recurso.substring(recurso.indexOf("?")+1).split("=")[1]})+"\r");
-                                } else {
-                                    procesarLocal(out, recurso, cliente);
-                                }
-                            }
-                        } else {
-                            String recurso = line.split(" ")[1];
-                            procesarLocal(out, recurso, cliente);
-                        }
-                        out.close();
-                    }
-                    if (!in.ready())
-                        break;
-                }
-                in.close();
-            }
-            cliente.close();
-            serverSocket.close();
+    public Server(int poolSize) {
+        try {
+            ListaURLHandler = new HashMap<String, Handler>();
+            serverSocket = new ServerSocket(Server.getPort());
+            pool = Executors.newFixedThreadPool(poolSize);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-    }
 
+    }
     public void inicializar() {
         Reflections reflections = new Reflections("edu.eci.arep.apps", new SubTypesScanner(false));
         Set<Class<? extends Object>> allClasses = reflections.getSubTypesOf(Object.class);
@@ -94,61 +48,26 @@ public class Server {
 
     }
 
-    private void procesarLocal(PrintWriter out, String recurso, Socket cliente) throws Exception {
-        BufferedReader br = null;
-        String path;
-        if(recurso.equals("/")){
-            path = System.getProperty("user.dir")+"/principal.html";
-        }else{
-            path = System.getProperty("user.dir") + "/resources" + recurso;
-        }
-        
-        try {
-            br = new BufferedReader(new FileReader(path));
-        } catch (Exception e) {
-            out.println("HTTP/1.1 404 Not Found\r");
-            out.println("Content-Type: text/html\r");
-            System.out.println("Not found");
-        }
-        try {
-            if (path.contains(".html")) {
-                html(out, br);
-            } else if (path.contains(".png")) {
-                png(out, cliente, recurso);
-            }
-        } catch (Exception e) {
-            out.println("HTTP/1.1 404 Not Found\r");
-            out.println("Content-Type: text/html\r");
-            System.out.println("Not found");
-        }
-
-    }
-
-    private void html(PrintWriter out, BufferedReader br) throws Exception {
-        out.write("HTTP/1.1 200 OK\r");
-        out.println("Content-Type: text/html\r");
-        out.println("\r");
-        String temp = br.readLine();
-        while (temp != null) {
-            out.write(temp+"\r");
-            temp = br.readLine();
-        }
-    }
-
-    private void png(PrintWriter out, Socket clientSocket, String recurso) throws Exception {
-        out.write("HTTP/1.1 200 OK\r");
-        out.println("Content-Type: image/png\r");
-        out.println("\r");
-        BufferedImage image = ImageIO.read(new File(System.getProperty("user.dir") + "/resources" + recurso));
-        ImageIO.write(image, "PNG", clientSocket.getOutputStream());
-    }
-
-
+    
 
     static int getPort() {
-		if (System.getenv("PORT") != null) {
-			return Integer.parseInt(System.getenv("PORT"));
-		}
-		return 4567; // returns default port if heroku-port isn't set (i.e. on localhost)
-	}
+        if (System.getenv("PORT") != null) {
+            return Integer.parseInt(System.getenv("PORT"));
+        }
+        return 4567; // returns default port if heroku-port isn't set (i.e. on localhost)
+    }
+
+    @Override
+    public void run() {
+        try{
+            while(true){
+                Socket cliente = serverSocket.accept();
+                ClienteThread clienteT = new ClienteThread(cliente, ListaURLHandler);
+                pool.execute(clienteT);
+            }
+        }catch(Exception e){
+            pool.shutdown();
+        }
+
+    }
 }
