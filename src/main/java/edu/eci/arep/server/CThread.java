@@ -15,12 +15,12 @@ import javax.imageio.ImageIO;
 /**
  * ClienteThread
  */
-public class ClienteThread extends Thread {
+public class CThread extends Thread {
 
     private Map<String, Handler> ListaURLHandler;
     private Socket cliente;
 
-    public ClienteThread(Socket cliente, Map<String,Handler> ListaURLHandler){
+    public CThread(Socket cliente, Map<String,Handler> ListaURLHandler){
         this.cliente = cliente;
         this.ListaURLHandler = ListaURLHandler;
     }

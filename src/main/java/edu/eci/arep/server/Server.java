@@ -62,7 +62,7 @@ public class Server implements Runnable {
         try{
             while(true){
                 Socket cliente = serverSocket.accept();
-                ClienteThread clienteT = new ClienteThread(cliente, ListaURLHandler);
+                CThread clienteT = new CThread(cliente, ListaURLHandler);
                 pool.execute(clienteT);
             }
         }catch(Exception e){
